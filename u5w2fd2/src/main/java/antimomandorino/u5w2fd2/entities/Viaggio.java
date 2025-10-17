@@ -20,6 +20,7 @@ public class Viaggio {
     private UUID viaggioId;
     private String destinazione;
     private LocalDate data;
+    @Enumerated(EnumType.STRING)
     private ViaggioStato stato;
 
     public Viaggio(String destinazione, LocalDate data, ViaggioStato stato) {
