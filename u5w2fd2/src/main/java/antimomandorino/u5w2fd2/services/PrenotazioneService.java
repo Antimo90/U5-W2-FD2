@@ -41,7 +41,7 @@ public class PrenotazioneService {
 
         LocalDate dataViaggio = viaggio.getData();
 
-        if (prenotazioneRepository.existsByDipendenteIdAndViaggioData(dipendente.getDipendenteId(), dataViaggio)) {
+        if (prenotazioneRepository.existsByDipendente_DipendenteIdAndViaggio_Data(dipendente.getDipendenteId(), dataViaggio)) {
             throw new BadRequestException("Il dipendente con ID " + dipendente.getDipendenteId() +
                     " ha già una prenotazione per un viaggio in data " + dataViaggio + ". " +
                     "Non può avere più prenotazioni per lo stesso giorno.");
@@ -79,7 +79,7 @@ public class PrenotazioneService {
         LocalDate nuovaDataViaggio = nuovoViaggio.getData();
 
 
-        if (prenotazioneRepository.existsByDipendenteIdAndViaggioData(nuovoDipendente.getDipendenteId(), nuovaDataViaggio)) {
+        if (prenotazioneRepository.existsByDipendente_DipendenteIdAndViaggio_Data(nuovoDipendente.getDipendenteId(), nuovaDataViaggio)) {
 
             if (!found.getViaggio().getViaggioId().equals(nuovoViaggio.getViaggioId()) ||
                     !found.getDipendente().getDipendenteId().equals(nuovoDipendente.getDipendenteId())) {

@@ -5,20 +5,38 @@ import antimomandorino.u5w2fd2.exceptions.BadRequestException;
 import antimomandorino.u5w2fd2.exceptions.NotFoundException;
 import antimomandorino.u5w2fd2.payloads.DipendenteDTO;
 import antimomandorino.u5w2fd2.repositories.DipendenteRepository;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class DipendenteService {
 
+    private static final long MAX_SIZE = 5 * 1024 * 1024;
+
+    private static final Set<String> ALLOWED_TYPES = Set.of( //GRAZIE INTERNET
+            "image/jpg",
+            "image/png",
+            "image/jpeg"
+    );
+
+
     @Autowired
     private DipendenteRepository dipendenteRepository;
+
+    @Autowired
+    private Cloudinary imageUploader;
 
     public Dipendente saveDipendente(DipendenteDTO payload) {
         dipendenteRepository.findByUsername(payload.username()).ifPresent(dipendente -> {
@@ -82,9 +100,22 @@ public class DipendenteService {
     }
 
     //cambio immagine
-    public Dipendente uploadImmagine(UUID dipendenteId, String imageUrl) {
+    public Dipendente uploadImmagine(UUID dipendenteId, MultipartFile file) {
         Dipendente found = this.findById(dipendenteId);
-        found.setImmagineProfilo(imageUrl); // O gestisci l'upload di MultipartFile qui
+
+        if (file.isEmpty()) throw new BadRequestException("File vuoto!");
+        if (file.getSize() > MAX_SIZE) throw new BadRequestException("File troppo grande!");
+        if (!ALLOWED_TYPES.contains(file.getContentType()))
+            throw new BadRequestException("I formati permessi sono png e jpeg!");
+
+        try {
+            Map result = imageUploader.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            String imageUrl = (String) result.get("url");
+            found.setImmagineProfilo(imageUrl);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        this.dipendenteRepository.save(found);
         return this.dipendenteRepository.save(found);
     }
 }
